@@ -821,10 +821,17 @@
 
             getLocationBtn.disabled = true;
             const originalBtnContent = getLocationBtn.innerHTML;
-            getLocationBtn.innerHTML = '<div class="spinner"></div> جاري تحديد موقعك...';
-            locationStatusP.textContent = '';
+            getLocationBtn.innerHTML = '<div class="spinner"></div> يرجى السماح بالوصول للموقع...';
+            locationStatusP.textContent = 'سيظهر لك نافذة من المتصفح، يرجى اختيار "سماح".';
             locationStatusP.classList.remove('text-red-500', 'text-green-500');
+            locationStatusP.classList.add('text-blue-600');
             locationErrorP.classList.add('hidden');
+
+            const options = {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
+            };
 
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -838,29 +845,32 @@
                     getLocationBtn.classList.replace('bg-blue-500', 'bg-green-600');
                     getLocationBtn.classList.replace('hover:bg-blue-600', 'hover:bg-green-700');
                     locationStatusP.textContent = `تم تحديد الموقع بنجاح (دقة: ${position.coords.accuracy.toFixed(0)} متر)`;
+                    locationStatusP.classList.remove('text-blue-600');
                     locationStatusP.classList.add('text-green-500');
                 },
                 (error) => {
                     let errorMessage = 'فشل تحديد الموقع. ';
                     switch(error.code) {
                         case error.PERMISSION_DENIED:
-                            errorMessage += "يرجى السماح بالوصول إلى موقعك.";
+                            errorMessage += "يرجى السماح بالوصول إلى موقعك من إعدادات المتصفح.";
                             break;
                         case error.POSITION_UNAVAILABLE:
                             errorMessage += "معلومات الموقع غير متاحة.";
                             break;
                         case error.TIMEOUT:
-                            errorMessage += "انتهت مهلة طلب الموقع.";
+                            errorMessage += "انتهت مهلة طلب الموقع، يرجى المحاولة مرة أخرى.";
                             break;
                         case error.UNKNOWN_ERROR:
                             errorMessage += "حدث خطأ غير معروف.";
                             break;
                     }
                     locationStatusP.textContent = errorMessage;
+                    locationStatusP.classList.remove('text-blue-600');
                     locationStatusP.classList.add('text-red-500');
                     getLocationBtn.disabled = false;
                     getLocationBtn.innerHTML = originalBtnContent;
-                }
+                },
+                options
             );
         });
 
