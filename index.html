@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
   <head>
@@ -53,19 +52,21 @@
       .active-category h3 {
           color: white !important;
       }
+      .spinner {
+        border: 2px solid #f3f3f3;
+        border-top: 2px solid #3498db;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        animation: spin 1s linear infinite;
+        display: inline-block;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
-  <script type="importmap">
-{
-  "imports": {
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.22.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "gifenc": "https://aistudiocdn.com/gifenc@^1.0.3"
-  }
-}
-</script>
-</head>
+  </head>
   <body class="bg-blue-50 text-gray-800">
     <!-- Header -->
     <header id="main-header" class="bg-white pb-4 shadow-sm sticky top-0 z-20">
@@ -181,7 +182,7 @@
       <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 text-center md:text-right">
         <div>
           <h3 class="text-xl font-bold mb-2">العنوان</h3>
-          <p>حدائق اكتوبر - الممشى السياحي 390 فدان - عمارة 557</p>
+          <p><a href="https://maps.app.goo.gl/5173AWJjTbHbcmn69" target="_blank" class="hover:underline">حدائق اكتوبر - الممشى السياحي 390 فدان - عمارة 557</a></p>
         </div>
         <div>
           <h3 class="text-xl font-bold mb-2">للتواصل والطلبات</h3>
@@ -243,6 +244,9 @@
                 <span class="text-lg font-bold">الإجمالي</span>
                 <span id="cart-total" class="text-xl font-bold text-blue-700">0.00 جنيه</span>
             </div>
+            <button id="clear-cart-button" class="w-full bg-red-500 text-white font-bold py-3 rounded-lg hover:bg-red-600 transition-colors">
+                تفريغ السلة
+            </button>
             <button id="checkout-button" class="w-full bg-green-600 text-white font-bold py-3 rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
             اتمام عملية الشراء
             </button>
@@ -265,10 +269,29 @@
             <input type="tel" id="phone" class="w-full p-2 border rounded border-gray-300" required />
             <p class="text-red-500 text-sm mt-1 hidden">رقم التواصل مطلوب</p>
           </div>
+          <div class="grid grid-cols-2 gap-2 mb-4">
+            <div>
+                <label for="building-number" class="block text-gray-700 mb-1">رقم العمارة*</label>
+                <input type="text" id="building-number" class="w-full p-2 border rounded border-gray-300" required />
+                <p class="text-red-500 text-sm mt-1 hidden">رقم العمارة مطلوب</p>
+            </div>
+            <div>
+                <label for="apartment-number" class="block text-gray-700 mb-1">رقم الشقة*</label>
+                <input type="text" id="apartment-number" class="w-full p-2 border rounded border-gray-300" required />
+                <p class="text-red-500 text-sm mt-1 hidden">رقم الشقة مطلوب</p>
+            </div>
+          </div>
           <div class="mb-4">
-            <label for="building" class="block text-gray-700 mb-1">رقم العمارة / الشقة*</label>
-            <input type="text" id="building" class="w-full p-2 border rounded border-gray-300" required />
-            <p class="text-red-500 text-sm mt-1 hidden">رقم العمارة مطلوب</p>
+            <label class="block text-gray-700 mb-1">تحديد الموقع على الخريطة*</label>
+            <button type="button" id="get-location-btn" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>تحديد موقعي</span>
+            </button>
+            <p id="location-status" class="text-sm mt-2 text-gray-600"></p>
+            <p id="location-error" class="text-red-500 text-sm mt-1 hidden">يرجى تحديد موقعك لإتمام الطلب</p>
           </div>
           <div class="mb-4">
             <label for="landmark" class="block text-gray-700 mb-1">علامة مميزة (اختياري)</label>
@@ -338,7 +361,7 @@
             items: [
               { id: 5, name: 'أرز سادة', description: 'أرز بسمتي مبهر على طريقة الصيادية التقليدية.', price: { medium: 25, large: 35 }, image: 'https://gandofly.ae/wp-content/uploads/2023/06/Sayadiyah-Rice.webp' },
               { id: 6, name: 'أرز بالجمبري', description: 'أرز بسمتي مع قطع الجمبري والخضروات.', price: { medium: 100, large: 120 }, image: 'https://www.gourmandize.com/uploads/media/img_5501.jpg?1383323202' },
-              { id: 7, name: 'أرز سى فود', description: 'أرز بسمتي مع سى فود.', price: { medium: 150, large: 180 }, image: 'https://www2.0zz0.com/2025/11/02/22/153137921.jpg' },
+              { id: 7, name: 'أرز سى فود', description: 'أرز بسمتي مع سى فود.', price: { medium: 150, large: 180 }, image: 'https://i.pinimg.com/474x/fa/f5/71/faf571a5ae5406e60c75d886e16681b2.jpg' },
 
             ],
           },
@@ -359,7 +382,7 @@
               { id: 14, name: 'بابا غنوج', description: 'مزيج منعش من الباذنجان المشوي بقطع خشنة، متبّل بعناية مع قطع صغيرة من الفلفل الرومي الملون.', price: { medium: 10 }, image: 'https://www2.0zz0.com/2025/10/04/20/373620573.jpg' },
               { id: 15, name: 'باذنجان', description: 'طبق تراثي غني ودافئ. طبقات من الباذنجان المقلي الذهبي', price: { medium: 10 }, image: 'https://www2.0zz0.com/2025/10/04/20/752922452.jpg' },
               { id: 16, name: 'طماطم متبلة', description: 'شرائح سميكة من الطماطم الحمراء الطازجة، مغمورة بتتبيلة عربية كلاسيكية: ثوم مهروس، عصير الليمون الطبيعي', price: { medium: 10 }, image: 'https://www2.0zz0.com/2025/10/04/20/334584325.jpg' },
-              { id: 17, name: 'خيار مخلل', description: 'خيار طازج تم تخليله بعناية فائقة على الطريقة التقليدية، يتميز بقوام مقرمش ونكهة حامضة ممتازة ومثالية.', price: { medium: 10 }, image: 'https://www2.0zz0.com/2025/10/04/20/431047226.jpg' },
+              { id: 17, name: 'خيار مخللل', description: 'خيار طازج تم تخليله بعناية فائقة على الطريقة التقليدية، يتميز بقوام مقرمش ونكهة حامضة ممتازة ومثالية.', price: { medium: 10 }, image: 'https://www2.0zz0.com/2025/10/04/20/431047226.jpg' },
             ],
           },
           {
@@ -397,6 +420,8 @@
         ];
         let cart = [];
         const DELIVERY_FEE = 15;
+        let userLocation = null;
+        let isLocationCaptured = false;
 
         // --- DOM Elements ---
         const menuContainer = document.getElementById('menu-container');
@@ -409,6 +434,7 @@
         const cartDeliveryFeeSpan = document.getElementById('cart-delivery-fee');
         const cartTotalSpan = document.getElementById('cart-total');
         const checkoutButton = document.getElementById('checkout-button');
+        const clearCartButton = document.getElementById('clear-cart-button');
         const checkoutModal = document.getElementById('checkout-modal');
         const checkoutForm = document.getElementById('checkout-form');
         const checkoutCancelButton = document.getElementById('checkout-cancel-button');
@@ -423,7 +449,9 @@
         const categoryCardsContainer = document.getElementById('category-cards-container');
         const mainHeader = document.getElementById('main-header');
         const scrollToTopBtn = document.getElementById('scroll-to-top-btn');
-        
+        const getLocationBtn = document.getElementById('get-location-btn');
+        const locationStatusP = document.getElementById('location-status');
+        const locationErrorP = document.getElementById('location-error');
 
         // --- RENDER FUNCTIONS ---
         const renderPriceAndButton = (item) => {
@@ -520,6 +548,7 @@
             cartDeliveryFeeSpan.textContent = `${deliveryFee.toFixed(2)} جنيه`;
             cartTotalSpan.textContent = `${totalPrice.toFixed(2)} جنيه`;
             checkoutButton.disabled = isCartEmpty;
+            clearCartButton.disabled = isCartEmpty;
 
             if (isCartEmpty) {
                 cartItemsContainer.innerHTML = `<p class="text-gray-500 text-lg text-center mt-10">سلتك فارغة.</p>`;
@@ -627,9 +656,10 @@
             let isValid = true;
             const nameInput = document.getElementById('name');
             const phoneInput = document.getElementById('phone');
-            const buildingInput = document.getElementById('building');
+            const buildingNumberInput = document.getElementById('building-number');
+            const apartmentNumberInput = document.getElementById('apartment-number');
 
-            [nameInput, phoneInput, buildingInput].forEach(input => {
+            [nameInput, phoneInput, buildingNumberInput, apartmentNumberInput].forEach(input => {
                 const errorP = input.nextElementSibling;
                 if (!input.value.trim()) {
                     isValid = false;
@@ -641,15 +671,26 @@
                 }
             });
 
+            if (!isLocationCaptured) {
+                isValid = false;
+                locationErrorP.classList.remove('hidden');
+            } else {
+                locationErrorP.classList.add('hidden');
+            }
+
             if (!isValid) return;
 
             const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
             const total = subtotal + DELIVERY_FEE;
             
-            let orderMessage = `*طلب جديد من مطعم السماك*\n\n*العميل:* ${nameInput.value}\n*رقم التواصل:* ${phoneInput.value}\n*العنوان:* رقم العمارة/الشقة ${buildingInput.value}\n`;
+            let orderMessage = `*طلب جديد من مطعم السماك*\n\n*العميل:* ${nameInput.value}\n*رقم التواصل:* ${phoneInput.value}\n*العنوان:* رقم العمارة: ${buildingNumberInput.value}, رقم الشقة: ${apartmentNumberInput.value}\n`;
             const landmarkValue = document.getElementById('landmark').value;
             if (landmarkValue) {
                 orderMessage += `*علامة مميزة:* ${landmarkValue}\n`;
+            }
+            if (userLocation) {
+                const mapLink = `https://www.google.com/maps/search/?api=1&query=${userLocation.lat},${userLocation.lng}`;
+                orderMessage += `*رابط الموقع:* ${mapLink}\n`;
             }
             const deliveryTimeValue = document.getElementById('delivery-time').value;
             if (deliveryTimeValue) {
@@ -757,9 +798,92 @@
         floatingCartButton.addEventListener('click', () => cartSidebar.classList.remove('hidden'));
         cartCloseButton.addEventListener('click', () => cartSidebar.classList.add('hidden'));
         cartSidebar.addEventListener('click', (e) => { if(e.target === cartSidebar) cartSidebar.classList.add('hidden'); });
-        checkoutButton.addEventListener('click', () => { cartSidebar.classList.add('hidden'); checkoutModal.classList.remove('hidden'); });
+        checkoutButton.addEventListener('click', () => { 
+            cartSidebar.classList.add('hidden'); 
+            checkoutModal.classList.remove('hidden');
+        });
+        
+        // Clear Cart Button Logic
+        clearCartButton.addEventListener('click', () => {
+            if (confirm('هل أنت متأكد أنك تريد تفريغ السلة؟')) {
+                cart = [];
+                updateCartView();
+            }
+        });
+
+        // Get Location Button Logic
+        getLocationBtn.addEventListener('click', () => {
+            if (!navigator.geolocation) {
+                locationStatusP.textContent = 'المتصفح الخاص بك لا يدعم تحديد الموقع.';
+                locationStatusP.classList.add('text-red-500');
+                return;
+            }
+
+            getLocationBtn.disabled = true;
+            const originalBtnContent = getLocationBtn.innerHTML;
+            getLocationBtn.innerHTML = '<div class="spinner"></div> جاري تحديد موقعك...';
+            locationStatusP.textContent = '';
+            locationStatusP.classList.remove('text-red-500', 'text-green-500');
+            locationErrorP.classList.add('hidden');
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    isLocationCaptured = true;
+                    
+                    getLocationBtn.innerHTML = '✓ تم تحديد الموقع';
+                    getLocationBtn.classList.replace('bg-blue-500', 'bg-green-600');
+                    getLocationBtn.classList.replace('hover:bg-blue-600', 'hover:bg-green-700');
+                    locationStatusP.textContent = `تم تحديد الموقع بنجاح (دقة: ${position.coords.accuracy.toFixed(0)} متر)`;
+                    locationStatusP.classList.add('text-green-500');
+                },
+                (error) => {
+                    let errorMessage = 'فشل تحديد الموقع. ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage += "يرجى السماح بالوصول إلى موقعك.";
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage += "معلومات الموقع غير متاحة.";
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage += "انتهت مهلة طلب الموقع.";
+                            break;
+                        case error.UNKNOWN_ERROR:
+                            errorMessage += "حدث خطأ غير معروف.";
+                            break;
+                    }
+                    locationStatusP.textContent = errorMessage;
+                    locationStatusP.classList.add('text-red-500');
+                    getLocationBtn.disabled = false;
+                    getLocationBtn.innerHTML = originalBtnContent;
+                }
+            );
+        });
+
         checkoutForm.addEventListener('submit', (e) => { e.preventDefault(); handlePlaceOrder(); });
-        checkoutCancelButton.addEventListener('click', () => checkoutModal.classList.add('hidden'));
+        checkoutCancelButton.addEventListener('click', () => {
+            checkoutModal.classList.add('hidden');
+            checkoutForm.reset();
+            // Reset location state
+            userLocation = null;
+            isLocationCaptured = false;
+            getLocationBtn.disabled = false;
+            getLocationBtn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>تحديد موقعي</span>
+            `;
+            getLocationBtn.classList.replace('bg-green-600', 'bg-blue-500');
+            getLocationBtn.classList.replace('hover:bg-green-700', 'hover:bg-blue-600');
+            locationStatusP.textContent = '';
+            locationErrorP.classList.add('hidden');
+        });
         checkoutModal.addEventListener('click', (e) => { if(e.target === checkoutModal) checkoutModal.classList.add('hidden'); });
         confirmationCloseButton.addEventListener('click', () => confirmationModal.classList.add('hidden'));
         confirmationModal.addEventListener('click', (e) => { if(e.target === confirmationModal) confirmationModal.classList.add('hidden'); });
@@ -797,4 +921,3 @@
     </script>
   </body>
 </html>
-
