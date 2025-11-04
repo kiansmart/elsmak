@@ -52,6 +52,10 @@
       .active-category h3 {
           color: white !important;
       }
+      .active-nav-link {
+        color: #1e40af !important; /* blue-800 */
+        border-bottom: 2px solid #1e40af;
+      }
       .spinner {
         border: 2px solid #f3f3f3;
         border-top: 2px solid #3498db;
@@ -91,6 +95,42 @@
             </div>
         </div>
     </header>
+
+    <!-- Sticky Navigation Bar with Glassmorphism and Search -->
+    <nav id="sticky-nav" class="sticky top-0 z-30 transition-all duration-300">
+        <div class="bg-white/80 backdrop-blur-lg border-b border-white/20 shadow-lg">
+            <div class="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 p-3">
+                <!-- Category Links -->
+                <div class="flex flex-wrap justify-center items-center gap-2 md:gap-4 w-full md:w-auto">
+                    <a href="#all" class="nav-link text-gray-800 hover:text-blue-800 transition-colors duration-200 font-semibold pb-1">عرض الكل</a>
+                    <a href="#category-0" class="nav-link text-gray-800 hover:text-blue-800 transition-colors duration-200 font-semibold pb-1">الشوربة</a>
+                    <a href="#category-1" class="nav-link text-gray-800 hover:text-blue-800 transition-colors duration-200 font-semibold pb-1">الأطباق</a>
+                    <a href="#category-2" class="nav-link text-gray-800 hover:text-blue-800 transition-colors duration-200 font-semibold pb-1">السندويتشات</a>
+                    <a href="#category-3" class="nav-link text-gray-800 hover:text-blue-800 transition-colors duration-200 font-semibold pb-1">الإضافات</a>
+                    <a href="#category-4" class="nav-link text-gray-800 hover:text-blue-800 transition-colors duration-200 font-semibold pb-1">الطواجن</a>
+                    <a href="#category-5" class="nav-link text-gray-800 hover:text-blue-800 transition-colors duration-200 font-semibold pb-1">الوجبات</a>
+                    <a href="#category-6" class="nav-link text-gray-800 hover:text-blue-800 transition-colors duration-200 font-semibold pb-1">الأسماك الطازجة</a>
+                </div>
+                <!-- Search Bar -->
+                <div class="relative w-full md:w-64">
+                    <input 
+                        type="search" 
+                        id="search-input" 
+                        placeholder="ابحث عن منتج..." 
+                        class="w-full p-2 pl-10 rounded-lg bg-white/70 text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-600"
+                    >
+                    <svg class="absolute right-3 top-2.5 h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <button id="clear-search-btn" class="absolute left-3 top-2.5 text-gray-600 hover:text-gray-800 hidden">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
 
     <!-- Browse Categories Section -->
     <section id="browse-categories" class="bg-transparent py-8 px-4">
@@ -186,8 +226,8 @@
         </div>
         <div>
           <h3 class="text-xl font-bold mb-2">للتواصل والطلبات</h3>
-          <p>رقم الدليفرى (1): <a href="tel:+201034004471" class="hover:underline">01034004471</a></p>
-          <p>رقم الدليفرى (2): <a href="tel:+201146680060" class="hover:underline">01146680060</a></p>
+          <p>رقم الدليفري: <a href="tel:+201034004471" class="hover:underline">01034004471</a></p>
+          <p>رقم آخر: <a href="tel:+201146680060" class="hover:underline">01146680060</a></p>
         </div>
         <div>
           <h3 class="text-xl font-bold mb-2">تابعنا</h3>
@@ -422,6 +462,7 @@
         const DELIVERY_FEE = 15;
         let userLocation = null;
         let isLocationCaptured = false;
+        let currentActiveCategory = 'all'; // Track the active category
 
         // --- DOM Elements ---
         const menuContainer = document.getElementById('menu-container');
@@ -452,6 +493,10 @@
         const getLocationBtn = document.getElementById('get-location-btn');
         const locationStatusP = document.getElementById('location-status');
         const locationErrorP = document.getElementById('location-error');
+        const stickyNav = document.getElementById('sticky-nav');
+        const searchInput = document.getElementById('search-input');
+        const clearSearchBtn = document.getElementById('clear-search-btn');
+        const navLinks = document.querySelectorAll('.nav-link');
 
         // --- RENDER FUNCTIONS ---
         const renderPriceAndButton = (item) => {
@@ -492,8 +537,8 @@
           }
         };
 
-        const renderMenu = () => {
-          menuContainer.innerHTML = menuData.map((category, index) => `
+        const renderMenu = (dataToRender = menuData) => {
+          menuContainer.innerHTML = dataToRender.map((category, index) => `
             <section id="category-${index}" class="mb-12">
               <h2 class="text-3xl font-bold text-blue-800 border-b-4 border-blue-300 pb-2 mb-6">${category.title}</h2>
               <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -614,7 +659,7 @@
 
         const smoothScrollTo = (element) => {
             if (element) {
-                const headerOffset = mainHeader.offsetHeight;
+                const headerOffset = mainHeader.offsetHeight + stickyNav.offsetHeight;
                 const elementPosition = element.getBoundingClientRect().top;
                 const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -709,6 +754,7 @@
             orderMessage += `\n*الإجمالي النهائي: ${total.toFixed(2)} جنيه*`;
 
 
+            // رقم الواتساب الوحيد للمراسلات
             const whatsappNumber = "201034004471";
             const encodedMessage = encodeURIComponent(orderMessage);
             const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
@@ -719,6 +765,72 @@
             updateCartView();
             checkoutForm.reset();
             window.open(whatsappUrl, '_blank');
+        };
+
+        const setActiveNavLink = (targetId) => {
+            navLinks.forEach(link => {
+                link.classList.remove('active-nav-link');
+                if (link.getAttribute('href') === `#${targetId}`) {
+                    link.classList.add('active-nav-link');
+                }
+            });
+        };
+
+        const handleCategoryNavigation = (targetId) => {
+            currentActiveCategory = targetId;
+            setActiveNavLink(targetId);
+
+            const menuSections = menuContainer.querySelectorAll('section[id^="category-"]');
+            let firstVisibleSection = null;
+
+            menuSections.forEach(section => {
+                const isVisible = (targetId === 'all' || section.id === targetId);
+                section.style.display = isVisible ? 'block' : 'none';
+                if (isVisible && !firstVisibleSection) {
+                    firstVisibleSection = section;
+                }
+            });
+
+            const elementToScrollTo = (targetId === 'all') ? document.getElementById('best-dishes') : firstVisibleSection;
+            if (elementToScrollTo) {
+                smoothScrollTo(elementToScrollTo);
+            }
+
+            // Update category cards active state
+            categoryCardsContainer.querySelectorAll('.category-card').forEach(card => {
+                card.classList.remove('active-category');
+                if (card.dataset.targetId === targetId) {
+                    card.classList.add('active-category');
+                }
+            });
+        };
+
+        const handleSearch = (query) => {
+            if (!query) {
+                renderMenu(menuData);
+                handleCategoryNavigation(currentActiveCategory); // Restore last active category
+                clearSearchBtn.classList.add('hidden');
+                return;
+            }
+
+            clearSearchBtn.classList.remove('hidden');
+            const lowercasedQuery = query.toLowerCase();
+            const filteredData = menuData.map(category => ({
+                ...category,
+                items: category.items.filter(item =>
+                    item.name.toLowerCase().includes(lowercasedQuery) ||
+                    item.description.toLowerCase().includes(lowercasedQuery)
+                )
+            })).filter(category => category.items.length > 0);
+
+            if (filteredData.length > 0) {
+                renderMenu(filteredData);
+            } else {
+                menuContainer.innerHTML = `<p class="text-center text-gray-500 text-xl mt-10">لم يتم العثور على نتائج لـ "${query}"</p>`;
+            }
+            // Deactivate all nav links and category cards during search
+            navLinks.forEach(link => link.classList.remove('active-nav-link'));
+            categoryCardsContainer.querySelectorAll('.category-card').forEach(card => card.classList.remove('active-category'));
         };
         
         // --- EVENT LISTENERS ---
@@ -768,32 +880,28 @@
 
         categoryCardsContainer.addEventListener('click', (e) => {
             const card = e.target.closest('.category-card');
-            if (!card) return;
-
-            const targetId = card.dataset.targetId;
-            const menuSections = menuContainer.querySelectorAll('section[id^="category-"]');
-
-            // Update active state for category cards
-            categoryCardsContainer.querySelectorAll('.category-card').forEach(c => c.classList.remove('active-category'));
-            card.classList.add('active-category');
-
-            // Filter visibility of menu sections
-            let firstVisibleSection = null;
-            menuSections.forEach(section => {
-                const isVisible = (targetId === 'all' || section.id === targetId);
-                section.style.display = isVisible ? 'block' : 'none';
-                if (isVisible && !firstVisibleSection) {
-                    firstVisibleSection = section;
-                }
-            });
-
-            // Scroll to the top of the menu container or the first visible section
-            const elementToScrollTo = (targetId === 'all') ? document.getElementById('best-dishes') : firstVisibleSection;
-            if (elementToScrollTo) {
-                smoothScrollTo(elementToScrollTo);
+            if (card) {
+                const targetId = card.dataset.targetId;
+                handleCategoryNavigation(targetId);
             }
         });
 
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').substring(1);
+                handleCategoryNavigation(targetId);
+            });
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            handleSearch(e.target.value);
+        });
+
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            handleSearch('');
+        });
 
         floatingCartButton.addEventListener('click', () => cartSidebar.classList.remove('hidden'));
         cartCloseButton.addEventListener('click', () => cartSidebar.classList.add('hidden'));
@@ -926,11 +1034,9 @@
         renderMenu();
         renderCategoryCards();
         updateCartView();
+        setActiveNavLink('all'); // Set initial active state
 
       });
     </script>
   </body>
 </html>
-
-
-
