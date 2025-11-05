@@ -618,6 +618,19 @@
         const [activeCategory, setActiveCategory] = useState('all');
         const [isScrollToTopVisible, setIsScrollToTopVisible] = useState(false);
 
+        // This effect handles scrolling to the selected category
+        useEffect(() => {
+          const targetId = activeCategory === 'all' ? 'best-dishes' : activeCategory;
+          const element = document.getElementById(targetId);
+          
+          if (element) {
+            const headerOffset = document.getElementById('main-header')?.offsetHeight ?? 0;
+            const elementPosition = element.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+          }
+        }, [activeCategory]);
+
         useEffect(() => {
           const handleScroll = () => {
               setIsScrollToTopVisible(window.scrollY > 300);
@@ -628,14 +641,6 @@
         
         const handleSelectCategory = (categoryId) => {
           setActiveCategory(categoryId);
-          const targetId = categoryId === 'all' ? 'best-dishes' : categoryId;
-          const element = document.getElementById(targetId);
-          if(element) {
-              const headerOffset = document.getElementById('main-header')?.offsetHeight ?? 0;
-              const elementPosition = element.getBoundingClientRect().top;
-              const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-              window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
-          }
         };
         
         const handleAddToCart = useCallback((itemId, size) => {
