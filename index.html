@@ -85,6 +85,7 @@
       const DELIVERY_FEE = 15;
       const WHATSAPP_NUMBER = "201034004471";
       const FACEBOOK_URL = "https://www.facebook.com/profile.php?id=61578163604403";
+      const WHATSAPP_GROUP_URL = "https://chat.whatsapp.com/DECcVtkAamrI5mSYjUBYVW?mode=ems_copy_t&fbclid=IwY2xjawN4xDdleHRuA2FlbQIxMABicmlkETFtMml0WEtQNXEyaUNRNUlVc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHjG4sWYPWoYPpzZDRl0r2pEBc2-QiBzxO0gcqTM3nnCfJDKuFjuSwpkrfyvC_aem_ftxxvMrkeZKkO75CrdCdGQ";
       const menuData = [
         {
           title: 'الشوربة',
@@ -160,6 +161,7 @@
       // --- From components/Footer.tsx ---
       const Footer = () => {
         const qrRef = useRef(null);
+        const whatsappQrRef = useRef(null);
         
         useEffect(() => {
           // إنشاء QR code لرابط الفيسبوك
@@ -167,6 +169,21 @@
             qrRef.current.innerHTML = '';
             new QRCode(qrRef.current, {
               text: FACEBOOK_URL,
+              width: 120,
+              height: 120,
+              colorDark: "#000000",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.H
+            });
+          }
+        }, []);
+
+        useEffect(() => {
+          // إنشاء QR code لرابط جروب الواتساب
+          if (whatsappQrRef.current) {
+            whatsappQrRef.current.innerHTML = '';
+            new QRCode(whatsappQrRef.current, {
+              text: WHATSAPP_GROUP_URL,
               width: 120,
               height: 120,
               colorDark: "#000000",
@@ -191,9 +208,10 @@
               <div>
                 <h3 className="text-xl font-bold mb-2">تابعنا</h3>
                 <div className="flex justify-center md:justify-start gap-4 mt-2 items-center">
-                  <a href="https://wa.me/201034004471" target="_blank" rel="noopener noreferrer" className="hover:opacity-80">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.487 5.235 3.487 8.413 0 6.557-5.338 11.892-11.894 11.892-1.99 0-3.903-.52-5.586-1.457l-6.354 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.886-.001 2.267.655 4.398 1.908 6.161l-.477 1.744 1.805-.473z"/></svg>
-                  </a>
+                  <div className="qr-container">
+                    <div ref={whatsappQrRef}></div>
+                    <p className="text-xs mt-1 text-center text-gray-800">جروب الواتساب</p>
+                  </div>
                   <div className="qr-container">
                     <div ref={qrRef}></div>
                     <p className="text-xs mt-1 text-center text-gray-800">فيسبوك</p>
