@@ -63,9 +63,8 @@
   <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+    "react": "https://esm.sh/react@18",
+    "react-dom/client": "https://esm.sh/react-dom@18/client"
   }
 }
 </script>
@@ -78,14 +77,13 @@
       // It's transpiled in the browser by Babel.
 
       // --- React Imports ---
-      import React, { useState, useEffect, useRef, useCallback } from 'https://esm.sh/react@18.3.1';
-      import ReactDOM from 'https://esm.sh/react-dom@18.3.1/client';
+      import React, { useState, useEffect, useRef, useCallback } from 'react';
+      import ReactDOM from 'react-dom/client';
 
       // --- From constants.ts ---
       const DELIVERY_FEE = 15;
       const WHATSAPP_NUMBER = "201034004471";
       const FACEBOOK_URL = "https://www.facebook.com/profile.php?id=61578163604403";
-      // **تم التعديل هنا**: تم استخدام الرابط النظيف والمختصر لجروب الواتساب
       const WHATSAPP_GROUP_URL = "https://chat.whatsapp.com/DECcVtkAamrI5mSYjUBYVW";
       const menuData = [
         {
@@ -518,6 +516,7 @@
           const [name, setName] = useState('');
           const [phone, setPhone] = useState('');
           const [building, setBuilding] = useState('');
+          const [apartment, setApartment] = useState('');
           const [landmark, setLandmark] = useState('');
           const [deliveryTime, setDeliveryTime] = useState('');
           const [errors, setErrors] = useState({});
@@ -528,14 +527,15 @@
               if (!name.trim()) newErrors.name = "الاسم مطلوب";
               if (!phone.trim()) newErrors.phone = "رقم التواصل مطلوب";
               if (!building.trim()) newErrors.building = "رقم العمارة مطلوب";
+              if (!apartment.trim()) newErrors.apartment = "رقم الشقة مطلوب";
               
               if (Object.keys(newErrors).length > 0) {
                   setErrors(newErrors);
                   return;
               }
               
-              onPlaceOrder({ name, phone, building, landmark, deliveryTime });
-              setName(''); setPhone(''); setBuilding(''); setLandmark(''); setDeliveryTime(''); setErrors({});
+              onPlaceOrder({ name, phone, building, apartment, landmark, deliveryTime });
+              setName(''); setPhone(''); setBuilding(''); setApartment(''); setLandmark(''); setDeliveryTime(''); setErrors({});
           };
 
           if (!isOpen) return null;
@@ -555,10 +555,17 @@
                               <input type="tel" id="phone" value={phone} onChange={e => setPhone(e.target.value)} className={`w-full p-2 border rounded ${errors.phone ? 'border-red-500' : 'border-gray-300'}`} required />
                               {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
                           </div>
-                          <div className="mb-4">
-                              <label htmlFor="building" className="block text-gray-700 mb-1">رقم العمارة / الشقة*</label>
-                              <input type="text" id="building" value={building} onChange={e => setBuilding(e.target.value)} className={`w-full p-2 border rounded ${errors.building ? 'border-red-500' : 'border-gray-300'}`} required />
-                              {errors.building && <p className="text-red-500 text-sm mt-1">{errors.building}</p>}
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                              <div>
+                                  <label htmlFor="building" className="block text-gray-700 mb-1">رقم العمارة*</label>
+                                  <input type="text" id="building" value={building} onChange={e => setBuilding(e.target.value)} className={`w-full p-2 border rounded ${errors.building ? 'border-red-500' : 'border-gray-300'}`} required />
+                                  {errors.building && <p className="text-red-500 text-sm mt-1">{errors.building}</p>}
+                              </div>
+                              <div>
+                                  <label htmlFor="apartment" className="block text-gray-700 mb-1">رقم الشقة*</label>
+                                  <input type="text" id="apartment" value={apartment} onChange={e => setApartment(e.target.value)} className={`w-full p-2 border rounded ${errors.apartment ? 'border-red-500' : 'border-gray-300'}`} required />
+                                  {errors.apartment && <p className="text-red-500 text-sm mt-1">{errors.apartment}</p>}
+                              </div>
                           </div>
                           <div className="mb-4">
                               <label htmlFor="landmark" className="block text-gray-700 mb-1">علامة مميزة (اختياري)</label>
@@ -698,11 +705,11 @@
           });
         };
 
-        const handleClearCart = () => {
+        const handleClearCart = useCallback(() => {
           if (window.confirm('هل أنت متأكد من أنك تريد تفريغ السلة؟')) {
               setCart([]);
           }
-        };
+        }, []);
 
         const handleOpenCheckout = () => {
           setIsCartOpen(false);
@@ -713,7 +720,8 @@
           const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
           const total = subtotal + DELIVERY_FEE;
           
-          let orderMessage = `*طلب جديد من مطعم السماك*\n\n*العميل:* ${details.name}\n*رقم التواصل:* ${details.phone}\n*العنوان:* رقم العمارة/الشقة ${details.building}\n`;
+          let orderMessage = `*طلب جديد من مطعم السماك*\n\n*العميل:* ${details.name}\n*رقم التواصل:* ${details.phone}\n`;
+          orderMessage += `*العنوان:* رقم العمارة ${details.building}، رقم الشقة ${details.apartment}\n`;
           if (details.landmark) {
               orderMessage += `*علامة مميزة:* ${details.landmark}\n`;
           }
@@ -761,7 +769,7 @@
               onClose={() => setIsCartOpen(false)} 
               cart={cart} 
               onUpdateQuantity={handleUpdateQuantity} 
-              onClearCart={handleClearCart} 
+              onClearCart={handleClearCart}
               onCheckout={handleOpenCheckout}
             />
             
