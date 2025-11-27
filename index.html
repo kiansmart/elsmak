@@ -81,7 +81,8 @@
       import ReactDOM from 'react-dom/client';
 
       // --- From constants.ts ---
-      const DELIVERY_FEE = 15;
+      // تم تعديل قيمة رسوم التوصيل إلى 0
+      const DELIVERY_FEE = 0;
       const WHATSAPP_NUMBER = "201034004471";
       const FACEBOOK_URL = "https://www.facebook.com/profile.php?id=61578163604403";
       const WHATSAPP_GROUP_URL = "https://chat.whatsapp.com/DECcVtkAamrI5mSYjUBYVW";
@@ -472,8 +473,8 @@
       const CartSidebar = ({ isOpen, onClose, cart, onUpdateQuantity, onClearCart, onCheckout }) => {
           const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
           const isCartEmpty = cart.length === 0;
-          const deliveryFee = isCartEmpty ? 0 : DELIVERY_FEE;
-          const total = subtotal + deliveryFee;
+          // تم تعديل هذه الجزئية - لم نعد نستخدم رسوم التوصيل الثابتة
+          const total = subtotal;
 
           if (!isOpen) return null;
 
@@ -509,7 +510,8 @@
                       </div>
                       <footer className="p-4 bg-gray-100 border-t space-y-3">
                           <div className="flex justify-between items-center text-gray-700"><span>المجموع الفرعي</span><span>{subtotal.toFixed(2)} جنيه</span></div>
-                          <div className="flex justify-between items-center text-gray-700"><span>رسوم التوصيل</span><span>{deliveryFee.toFixed(2)} جنيه</span></div>
+                          {/* تم تعديل هذه الجزئية - رسوم التوصيل حسب المكان */}
+                          <div className="flex justify-between items-center text-gray-700"><span>رسوم التوصيل</span><span>حسب المكان</span></div>
                           <div className="border-t pt-3 mt-3 flex justify-between items-center"><span className="text-lg font-bold">الإجمالي</span><span className="text-xl font-bold text-blue-700">{total.toFixed(2)} جنيه</span></div>
                           <div className="flex gap-3">
                               <button onClick={onClearCart} disabled={isCartEmpty} className="flex-1 bg-red-600 text-white font-bold py-3 rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">تفريغ السلة</button>
@@ -727,7 +729,8 @@
         
         const handlePlaceOrder = (details) => {
           const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-          const total = subtotal + DELIVERY_FEE;
+          // تم تعديل هذه الجزئية - لم نعد نضيف رسوم التوصيل الثابتة
+          const total = subtotal;
           
           let orderMessage = `*طلب جديد من مطعم السماك*\n\n*العميل:* ${details.name}\n*رقم التواصل:* ${details.phone}\n`;
           orderMessage += `*العنوان:* رقم العمارة ${details.building}، رقم الشقة ${details.apartment}\n`;
@@ -746,7 +749,8 @@
           });
           
           orderMessage += `\n*المجموع الفرعي: ${subtotal.toFixed(2)} جنيه*`;
-          orderMessage += `\n*رسوم التوصيل: ${DELIVERY_FEE.toFixed(2)} جنيه*`;
+          // تم تعديل هذه الجزئية - رسوم التوصيل حسب المكان
+          orderMessage += `\n*رسوم التوصيل: حسب المكان*`;
           orderMessage += `\n*الإجمالي النهائي: ${total.toFixed(2)} جنيه*`;
 
           const encodedMessage = encodeURIComponent(orderMessage);
@@ -817,12 +821,3 @@
     </script>
   </body>
 </html>
-
-
-
-
-
-
-
-
-
